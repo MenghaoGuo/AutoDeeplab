@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import utils
 import model_search
 from genotypes import PRIMITIVES
 from genotypes import Genotype
