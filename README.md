@@ -24,4 +24,4 @@ Then
 
 ## Train
 
-If you have some confusion about the dataloader or any other quesions about training, this (link)[https://github.com/jfzhang95/pytorch-deeplab-xception] will be helpful.
+If you have some confusion about the dataloader or any other quesions about training, this [link](https://github.com/jfzhang95/pytorch-deeplab-xception) will be helpful.
