@@ -325,8 +325,8 @@ class AutoDeeplab (nn.Module) :
     def _initialize_alphas(self):
         k = sum(1 for i in range(self._step) for n in range(2+i))
         num_ops = len(PRIMITIVES)
-        self.alphas_cell = torch.tensor (1e-3*torch.randn(k, num_ops), requires_grad=True)
-        self.alphas_network = torch.tensor (1e-3*torch.randn(self._num_layers, 4, 3), requires_grad=True)
+        self.alphas_cell = torch.tensor (1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
+        self.alphas_network = torch.tensor (1e-3*torch.randn(self._num_layers, 4, 3).cuda(), requires_grad=True)
         # self.alphas_cell = self.alphas_cell.cuda ()
         # self.alphas_network = self.alphas_network.cuda ()
         self._arch_parameters = [
