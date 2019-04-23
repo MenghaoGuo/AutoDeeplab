@@ -10,6 +10,8 @@ The implementation needs the following dependencies:
 
 - Pytorch = 0.4 
 
+- TensorboardX
+
 Other basic dependencies like matplotlib, tqdm ... are also needed.
 
 ## Installation
@@ -24,11 +26,15 @@ Then
 
 ## Train
 
-If you have some confusion about the dataloader or any other quesions about training, this [link](https://github.com/jfzhang95/pytorch-deeplab-xception) will be helpful.
+The dataloader module is built on this [repo](https://github.com/jfzhang95/pytorch-deeplab-xception)
+
+If you want to train this model on different datasets, you need to edit --dataset parameter and then:
+
+    bash train.sh
 
 
 ## Reference
-[1] : https://arxiv.org/abs/1901.02985
+[1] : [Auto-DeepLab: Hierarchical Neural Architecture Search for Semantic Image Segmentation](https://arxiv.org/abs/1901.02985)
 
 
-[2] : https://github.com/jfzhang95/pytorch-deeplab-xception 
+[2] : [pytorch-deeplab-xception](https://github.com/jfzhang95/pytorch-deeplab-xception)
