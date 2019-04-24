@@ -30,7 +30,7 @@ The dataloader module is built on this [repo](https://github.com/jfzhang95/pytor
 
 If you want to train this model on different datasets, you need to edit --dataset parameter and then:
 
-    bash train.sh
+    bash train_voc.sh
 
 
 ## Reference
