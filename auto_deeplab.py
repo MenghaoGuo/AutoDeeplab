@@ -294,11 +294,13 @@ class AutoDeeplab (nn.Module) :
                 count += 1
                 level16_new = self.alphas_network[layer][2][0] * level16_new_1 + self.alphas_network[layer][2][1] * level16_new_2 + self.alphas_network[layer][2][2] * level16_new_3
 
+
                 level32_new_1 = self.cells[count] (self.level_32[-2], self.level_16[-1], weight_cells)
                 count += 1
                 level32_new_2 = self.cells[count] (self.level_32[-2], self.level_32[-1], weight_cells)
                 count += 1
-                level32_new = self.alphas_network[layer][3][0] * level32_new_1 + self.alphas_network[layer][3][1] * level32_new_32
+                level32_new = self.alphas_network[layer][3][0] * level32_new_1 + self.alphas_network[layer][3][1] * level32_new_2
+
 
                 self.level_4.append (level4_new)
                 self.level_8.append (level8_new)
@@ -329,7 +331,7 @@ class AutoDeeplab (nn.Module) :
         # self.alphas_network = self.alphas_network.cuda ()
         self._arch_parameters = [
             self.alphas_cell,
-            self.alphas_network
+            self.alphas_network,
         ]
 
     def decode_network (self) :
