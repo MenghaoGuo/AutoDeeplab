@@ -110,7 +110,8 @@ class Trainer(object):
                 image_search, target_search = image_search.cuda (), target_search.cuda () 
                 # print ('cuda finish')
 
-            self.architect.step (image_search, target_search)
+            if epoch > 19:
+                self.architect.step (image_search, target_search)
             self.scheduler(self.optimizer, i, epoch, self.best_pred)
             self.optimizer.zero_grad()
             output = self.model(image)

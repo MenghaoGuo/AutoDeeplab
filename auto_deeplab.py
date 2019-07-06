@@ -294,7 +294,6 @@ class AutoDeeplab (nn.Module) :
                 count += 1
                 level16_new = self.alphas_network[layer][2][0] * level16_new_1 + self.alphas_network[layer][2][1] * level16_new_2 + self.alphas_network[layer][2][2] * level16_new_3
 
-
                 level32_new_1 = self.cells[count] (self.level_32[-2], self.level_16[-1], weight_cells)
                 count += 1
                 level32_new_2 = self.cells[count] (self.level_32[-2], self.level_32[-1], weight_cells)
