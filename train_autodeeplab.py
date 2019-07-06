@@ -45,7 +45,7 @@ class Trainer(object):
         self.criterion = SegmentationLosses(weight=weight, cuda=args.cuda).build_loss(mode=args.loss_type)
 
         # Define network
-        model = AutoDeeplab (21, 12, self.criterion)
+        model = AutoDeeplab (self.nclass, 12, self.criterion)
         optimizer = torch.optim.SGD(
                 model.parameters(),
                 args.lr,
@@ -110,7 +110,8 @@ class Trainer(object):
                 image_search, target_search = image_search.cuda (), target_search.cuda () 
                 # print ('cuda finish')
 
-            self.architect.step (image_search, target_search)
+            if epoch > 19:
+                self.architect.step (image_search, target_search)
             self.scheduler(self.optimizer, i, epoch, self.best_pred)
             self.optimizer.zero_grad()
             output = self.model(image)
