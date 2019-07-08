@@ -109,7 +109,7 @@ class Trainer(object):
                 image, target = image.cuda(), target.cuda()
                 image_search, target_search = image_search.cuda (), target_search.cuda () 
                 # print ('cuda finish')
-
+            # The architecture parameters don't get optizmized before first 20 epochs.
             if epoch > 19:
                 self.architect.step (image_search, target_search)
             self.scheduler(self.optimizer, i, epoch, self.best_pred)
