@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from operations import *
 
 class AutoDeeplab (nn.Module) :
-    def __init__(self, num_classes, num_layers, criterion, num_channel = 20, multiplier = 5, step = 5, cell=model_search.Cell):
+    def __init__(self, num_classes, num_layers, criterion, num_channel = 40, multiplier = 5, step = 5, cell=model_search.Cell):
         super(AutoDeeplab, self).__init__()
         self.level_2 = []
         self.level_4 = []
