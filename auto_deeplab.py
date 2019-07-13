@@ -10,11 +10,6 @@ from operations import *
 class AutoDeeplab (nn.Module) :
     def __init__(self, num_classes, num_layers, criterion, num_channel = 40, multiplier = 5, step = 5, cell=model_search.Cell):
         super(AutoDeeplab, self).__init__()
-        self.level_2 = []
-        self.level_4 = []
-        self.level_8 = []
-        self.level_16 = []
-        self.level_32 = []
         self.cells = nn.ModuleList()
         self._num_layers = num_layers
         self._num_classes = num_classes
