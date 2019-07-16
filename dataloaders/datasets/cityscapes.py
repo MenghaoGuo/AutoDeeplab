@@ -6,21 +6,41 @@ from torch.utils import data
 from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
+import random
+
+def sp(args, split='train'):
+    root=Path.db_root_dir('cityscapes')
+    split="train"
+    images_base = os.path.join(root, 'leftImg8bit', split)
+    rootdir=images_base
+    suffix='.png'
+    
+    ls =   [os.path.join(looproot, filename)
+                for looproot, _, filenames in os.walk(rootdir)
+                for filename in filenames if filename.endswith(suffix)]
+    random.shuffle(ls)
+    split = 2975//2
+
+    return CityscapesSegmentation(args, split='train', part=ls[split:]), CityscapesSegmentation(args, split='train', part=ls[:split])
 
 class CityscapesSegmentation(data.Dataset):
     NUM_CLASSES = 19
 
-    def __init__(self, args, root=Path.db_root_dir('cityscapes'), split="train"):
-
+    def __init__(self, args, root=Path.db_root_dir('cityscapes'), split="train", part=None):
+        self.NUM_CLASSES = 19
         self.root = root
         self.split = split
         self.args = args
         self.files = {}
-
+        self.part=part
         self.images_base = os.path.join(self.root, 'leftImg8bit', self.split)
-        self.annotations_base = os.path.join(self.root, 'gtFine_trainvaltest', 'gtFine', self.split)
+        self.annotations_base = os.path.join(self.root, 'gtFine', self.split)
 
-        self.files[split] = self.recursive_glob(rootdir=self.images_base, suffix='.png')
+        if self.split=="train":
+            self.files[split] = part
+        else:
+            self.files[split] = self.recursive_glob(rootdir=self.images_base, suffix='.png')
+        
 
         self.void_classes = [0, 1, 2, 3, 4, 5, 6, 9, 10, 14, 15, 16, 18, 29, 30, -1]
         self.valid_classes = [7, 8, 11, 12, 13, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33]

@@ -2,7 +2,7 @@ import argparse
 import os
 import numpy as np
 from tqdm import tqdm
-
+import torch.nn as nn
 from mypath import Path
 from dataloaders import make_data_loader
 from modeling.sync_batchnorm.replicate import patch_replication_callback
@@ -82,7 +82,7 @@ class Trainer(object):
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
             if args.cuda:
-                self.model.module.load_state_dict(checkpoint['state_dict'])
+                self.model.load_state_dict(checkpoint['state_dict'])
             else:
                 self.model.load_state_dict(checkpoint['state_dict'])
             if not args.ft:
@@ -109,8 +109,7 @@ class Trainer(object):
                 image, target = image.cuda(), target.cuda()
                 image_search, target_search = image_search.cuda (), target_search.cuda () 
                 # print ('cuda finish')
-            # The architecture parameters don't get optizmized before first 20 epochs.
-            if epoch > 19:
+            if epoch>19:
                 self.architect.step (image_search, target_search)
             self.scheduler(self.optimizer, i, epoch, self.best_pred)
             self.optimizer.zero_grad()
@@ -137,7 +136,7 @@ class Trainer(object):
             is_best = False
             self.saver.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': self.model.module.state_dict(),
+                'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict(),
                 'best_pred': self.best_pred,
             }, is_best)
@@ -184,7 +183,7 @@ class Trainer(object):
             self.best_pred = new_pred
             self.saver.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': self.model.module.state_dict(),
+                'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict(),
                 'best_pred': self.best_pred,
             }, is_best)
@@ -194,24 +193,24 @@ def main():
     parser.add_argument('--backbone', type=str, default='resnet',
                         choices=['resnet', 'xception', 'drn', 'mobilenet'],
                         help='backbone name (default: resnet)')
-    parser.add_argument('--out-stride', type=int, default=16,
+    parser.add_argument('--out_stride', type=int, default=16,
                         help='network output stride (default: 8)')
     parser.add_argument('--dataset', type=str, default='pascal',
                         choices=['pascal', 'coco', 'cityscapes'],
                         help='dataset name (default: pascal)')
-    parser.add_argument('--use-sbd', action='store_true', default=False,
+    parser.add_argument('--use_sbd', action='store_true', default=False,
                         help='whether to use SBD dataset (default: True)')
     parser.add_argument('--workers', type=int, default=4,
                         metavar='N', help='dataloader threads')
-    parser.add_argument('--base-size', type=int, default=224,
+    parser.add_argument('--base_size', type=int, default=224,
                         help='base image size')
-    parser.add_argument('--crop-size', type=int, default=224,
+    parser.add_argument('--crop_size', type=int, default=224,
                         help='crop image size')
-    parser.add_argument('--sync-bn', type=bool, default=None,
+    parser.add_argument('--sync_bn', type=bool, default=None,
                         help='whether to use sync bn (default: auto)')
-    parser.add_argument('--freeze-bn', type=bool, default=False,
+    parser.add_argument('--freeze_bn', type=bool, default=False,
                         help='whether to freeze bn parameters (default: False)')
-    parser.add_argument('--loss-type', type=str, default='ce',
+    parser.add_argument('--loss_type', type=str, default='ce',
                         choices=['ce', 'focal'],
                         help='loss func type (default: ce)')
     # training hyper params
@@ -219,36 +218,36 @@ def main():
                         help='number of epochs to train (default: auto)')
     parser.add_argument('--start_epoch', type=int, default=0,
                         metavar='N', help='start epochs (default:0)')
-    parser.add_argument('--batch-size', type=int, default=None,
+    parser.add_argument('--batch_size', type=int, default=None,
                         metavar='N', help='input batch size for \
                                 training (default: auto)')
-    parser.add_argument('--test-batch-size', type=int, default=None,
+    parser.add_argument('--test_batch_size', type=int, default=None,
                         metavar='N', help='input batch size for \
                                 testing (default: auto)')
-    parser.add_argument('--use-balanced-weights', action='store_true', default=False,
+    parser.add_argument('--use_balanced_weights', action='store_true', default=False,
                         help='whether to use balanced weights (default: False)')
     # optimizer params
     parser.add_argument('--lr', type=float, default=None, metavar='LR',
                         help='learning rate (default: auto)')
-    parser.add_argument('--arch-lr', type=float, default=None, metavar='LR',
+    parser.add_argument('--arch_lr', type=float, default=None, metavar='LR',
                         help='architect learning rate (default: auto)')
 
-    parser.add_argument('--lr-scheduler', type=str, default='poly',
+    parser.add_argument('--lr_scheduler', type=str, default='poly',
                         choices=['poly', 'step', 'cos'],
                         help='lr scheduler mode: (default: poly)')
     parser.add_argument('--momentum', type=float, default=0.9,
                         metavar='M', help='momentum (default: 0.9)')
-    parser.add_argument('--weight-decay', type=float, default=3e-4,
+    parser.add_argument('--weight_decay', type=float, default=3e-4,
                         metavar='M', help='w-decay (default: 5e-4)')
-    parser.add_argument('--arch-weight-decay', type=float, default=1e-3,
+    parser.add_argument('--arch_weight-decay', type=float, default=1e-3,
                         metavar='M', help='w-decay (default: 5e-4)')
 
     parser.add_argument('--nesterov', action='store_true', default=False,
                         help='whether use nesterov (default: False)')
     # cuda, seed and logging
-    parser.add_argument('--no-cuda', action='store_true', default=
+    parser.add_argument('--no_cuda', action='store_true', default=
                         False, help='disables CUDA training')
-    parser.add_argument('--gpu-ids', type=str, default='0',
+    parser.add_argument('--gpu_ids', type=str, default='0',
                         help='use which gpu to train, must be a \
                         comma-separated list of integers only (default=0)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
@@ -262,9 +261,9 @@ def main():
     parser.add_argument('--ft', action='store_true', default=False,
                         help='finetuning on a different dataset')
     # evaluation option
-    parser.add_argument('--eval-interval', type=int, default=1,
+    parser.add_argument('--eval_interval', type=int, default=1,
                         help='evaluuation interval (default: 1)')
-    parser.add_argument('--no-val', action='store_true', default=False,
+    parser.add_argument('--no_val', action='store_true', default=False,
                         help='skip validation during training')
 
     args = parser.parse_args()
