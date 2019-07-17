@@ -202,10 +202,12 @@ def main():
                         help='whether to use SBD dataset (default: True)')
     parser.add_argument('--workers', type=int, default=4,
                         metavar='N', help='dataloader threads')
-    parser.add_argument('--base_size', type=int, default=224,
+    parser.add_argument('--base_size', type=int, default=320,
                         help='base image size')
-    parser.add_argument('--crop_size', type=int, default=224,
+    parser.add_argument('--crop_size', type=int, default=320,
                         help='crop image size')
+    parser.add_argument('--resize', type=int, default=512,
+                        help='resize image size')
     parser.add_argument('--sync_bn', type=bool, default=None,
                         help='whether to use sync bn (default: auto)')
     parser.add_argument('--freeze_bn', type=bool, default=False,
@@ -227,7 +229,7 @@ def main():
     parser.add_argument('--use_balanced_weights', action='store_true', default=False,
                         help='whether to use balanced weights (default: False)')
     # optimizer params
-    parser.add_argument('--lr', type=float, default=None, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.025, metavar='LR',
                         help='learning rate (default: auto)')
     parser.add_argument('--arch_lr', type=float, default=3e-3, 
                        help='learning rate for alpha and beta in architect searching process')
