@@ -46,7 +46,7 @@ class Trainer(object):
         self.criterion = SegmentationLosses(weight=weight, cuda=args.cuda).build_loss(mode=args.loss_type)
 
         # Define network
-        model = AutoDeeplab (self.nclass, 12, self.criterion)
+        model = AutoDeeplab (self.nclass, 12, self.criterion, crop_size=self.args.crop_size)
         optimizer = torch.optim.SGD(
                 model.parameters(),
                 args.lr,

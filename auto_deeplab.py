@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from operations import *
 
 class AutoDeeplab (nn.Module) :
+
     def __init__(self, num_classes, num_layers, criterion, num_channel = 40, multiplier = 5, step = 5, cell=model_search.Cell):
         super(AutoDeeplab, self).__init__()
         self.cells = nn.ModuleList()
@@ -17,6 +18,7 @@ class AutoDeeplab (nn.Module) :
         self._multiplier = multiplier
         self._num_channel = num_channel
         self._criterion = criterion
+        self._crop_size = crop_size
         self._initialize_alphas ()
         self.stem0 = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=2, padding=1),
@@ -139,20 +141,25 @@ class AutoDeeplab (nn.Module) :
                 self.cells += [cell3_3]
                 self.cells += [cell4_1]
                 self.cells += [cell4_2]
+        self.aspp_4 = nn.Sequential (
+            ASPP (self._num_channel, 24, 24, self._num_classes)
         self.aspp_4 = nn.Sequential (    # def __init__(self, in_channels, out_channels, paddings, dilations):
             ASPP (self._num_channel, 256, 24, 24)
         )
 
         self.aspp_8 = nn.Sequential (
+            ASPP (self._num_channel * 2, 12, 12, self._num_classes)
             ASPP (self._num_channel * 2, 256, 12, 12)
         )
         self.aspp_16 = nn.Sequential (
-            ASPP (self._num_channel * 4, 256, 6, 6)
+            ASPP (self._num_channel * 4, 6, 6, self._num_classes)
         )
         self.aspp_32 = nn.Sequential (
+            ASPP (self._num_channel * 8, 3, 3, self._num_classes)
+
             ASPP (self._num_channel * 8, 256, 3, 3)
         )
-        self.final_conv = nn.Conv2d (1024, num_classes, 1, stride= 1, padding= 0)
+        
 
 
 
@@ -316,22 +323,23 @@ class AutoDeeplab (nn.Module) :
         aspp_result_8 = self.aspp_8 (self.level_8[-1])
         aspp_result_16 = self.aspp_16 (self.level_16[-1])
         aspp_result_32 = self.aspp_32 (self.level_32[-1])
-        upsample = nn.Upsample(size=x.size()[2:], mode='bilinear', align_corners=True)
+        upsample = nn.Upsample(size=(self._crop_size,self._crop_size), mode='bilinear', align_corners=True)
         aspp_result_4 = upsample (aspp_result_4)
         aspp_result_8 = upsample (aspp_result_8)
         aspp_result_16 = upsample (aspp_result_16)
         aspp_result_32 = upsample (aspp_result_32)
-        concate_feature_map = torch.cat ([aspp_result_4, aspp_result_8, aspp_result_16, aspp_result_32], 1)
-        out = self.final_conv (concate_feature_map)
-        return out
+
+        sum_feature_map1 = torch.add (aspp_result_4, aspp_result_8)
+        sum_feature_map2 = torch.add (aspp_result_16, aspp_result_32)
+        sum_feature_map = torch.add (sum_feature_map1, sum_feature_map2)
+        return sum_feature_map
+
 
     def _initialize_alphas(self):
         k = sum(1 for i in range(self._step) for n in range(2+i))
         num_ops = len(PRIMITIVES)
         self.alphas_cell = torch.tensor (1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
         self.alphas_network = torch.tensor (1e-3*torch.randn(self._num_layers, 4, 3).cuda(), requires_grad=True)
-        # self.alphas_cell = self.alphas_cell.cuda ()
-        # self.alphas_network = self.alphas_network.cuda ()
         self._arch_parameters = [
             self.alphas_cell,
             self.alphas_network

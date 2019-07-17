@@ -15,7 +15,7 @@ def make_data_loader(args, **kwargs):
         val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
         test_loader = None
 
-        return train_loader, train_loader, train_loader, val_loader, test_loader, num_class
+        return train_loader, train_loader, val_loader, test_loader, num_class
 
     elif args.dataset == 'cityscapes':
         train_set1, train_set2 = cityscapes.sp(args, split='train')
