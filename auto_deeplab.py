@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from operations import *
 
 class AutoDeeplab (nn.Module) :
-    def __init__(self, num_classes, num_layers, criterion, num_channel = 20, multiplier = 5, step = 5, cell=model_search.Cell):
+    def __init__(self, num_classes, num_layers, criterion, num_channel = 20, multiplier = 5, step = 5, cell=model_search.Cell, crop_size=320):
         super(AutoDeeplab, self).__init__()
         self.level_2 = []
         self.level_4 = []
@@ -22,6 +22,7 @@ class AutoDeeplab (nn.Module) :
         self._multiplier = multiplier
         self._num_channel = num_channel
         self._criterion = criterion
+        self._crop_size = crop_size
         self._initialize_alphas ()
         self.stem0 = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=2, padding=1),
@@ -319,7 +320,7 @@ class AutoDeeplab (nn.Module) :
         aspp_result_8 = self.aspp_8 (self.level_8[-1])
         aspp_result_16 = self.aspp_16 (self.level_16[-1])
         aspp_result_32 = self.aspp_32 (self.level_32[-1])
-        upsample = nn.Upsample(size=x.size()[2:], mode='bilinear', align_corners=True)
+        upsample = nn.Upsample(size=(self._crop_size,self._crop_size), mode='bilinear', align_corners=True)
         aspp_result_4 = upsample (aspp_result_4)
         aspp_result_8 = upsample (aspp_result_8)
         aspp_result_16 = upsample (aspp_result_16)
