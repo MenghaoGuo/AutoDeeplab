@@ -108,19 +108,21 @@ class FactorizedIncrease (nn.Module) :
 
 
 class ASPP(nn.Module):
-    def __init__(self, in_channels, paddings, dilations, num_classes):
+    def __init__(self, in_channels, out_channels, paddings, dilations):
         # todo depthwise separable conv
         super(ASPP, self).__init__()
-        self._num_classes =num_classes
-        self.conv11 = nn.Sequential(nn.Conv2d(in_channels, in_channels, 1, bias=False),
-                                    nn.BatchNorm2d(in_channels))
-        self.conv33 = nn.Sequential(nn.Conv2d(in_channels, in_channels, 3,
-                                    padding=paddings, dilation=dilations, bias=False),
-                                      nn.BatchNorm2d(in_channels))
-        self.conv_p = nn.Sequential(nn.Conv2d(in_channels, in_channels, 1, bias=False),
-                                    nn.BatchNorm2d(in_channels))
+        self.conv11 = nn.Sequential(nn.Conv2d(in_channels, out_channels, 1, bias=False, ),
+                                    nn.BatchNorm2d(out_channels))
+        self.conv33 = nn.Sequential(nn.Conv2d(in_channels, out_channels, 3,
+                                    padding=paddings, dilation=dilations, bias=False, ),
+                                      nn.BatchNorm2d(out_channels))
+        self.conv_p = nn.Sequential(nn.Conv2d(in_channels, out_channels, 1, bias=False, ),
+                                    nn.BatchNorm2d(out_channels))
 
-        self.concate_conv = nn.Sequential(nn.Conv2d(in_channels * 3, self._num_classes, 1,  stride=1, padding=0))
+        self.concate_conv = nn.Sequential(nn.Conv2d(out_channels * 3, out_channels, 1, bias=False),
+                                          nn.BatchNorm2d(out_channels))
+
+        # self.upsample = nn.Upsample(mode='bilinear', align_corners=True)
 
     def forward(self, x):
         conv11 = self.conv11(x)
