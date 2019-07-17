@@ -145,18 +145,18 @@ class AutoDeeplab (nn.Module) :
                 self.cells += [cell4_1]
                 self.cells += [cell4_2]
         self.aspp_4 = nn.Sequential (
-            ASPP (self._num_channel, 256, 6, 6)
+            ASPP (self._num_channel, 24, 24, self._num_classes)
         )
         self.aspp_8 = nn.Sequential (
-            ASPP (self._num_channel * 2, 256, 6, 6)
+            ASPP (self._num_channel * 2, 12, 12, self._num_classes)
         )
         self.aspp_16 = nn.Sequential (
-            ASPP (self._num_channel * 4, 256, 6, 6)
+            ASPP (self._num_channel * 4, 6, 6, self._num_classes)
         )
         self.aspp_32 = nn.Sequential (
-            ASPP (self._num_channel * 8, 256, 6, 6)
+            ASPP (self._num_channel * 8, 3, 3, self._num_classes)
         )
-        self.final_conv = nn.Conv2d (1024, num_classes, 1, stride= 1, padding= 0)
+        
 
 
 
@@ -324,9 +324,12 @@ class AutoDeeplab (nn.Module) :
         aspp_result_8 = upsample (aspp_result_8)
         aspp_result_16 = upsample (aspp_result_16)
         aspp_result_32 = upsample (aspp_result_32)
-        concate_feature_map = torch.cat ([aspp_result_4, aspp_result_8, aspp_result_16, aspp_result_32], 1)
-        out = self.final_conv (concate_feature_map)
-        return out
+
+        sum_feature_map1 = torch.add (aspp_result_4, aspp_result_8)
+        sum_feature_map2 = torch.add (aspp_result_16, aspp_result_32)
+        sum_feature_map = torch.add (sum_feature_map1, sum_feature_map2)
+
+        return sum_feature_map
 
     def _initialize_alphas(self):
         k = sum(1 for i in range(self._step) for n in range(2+i))
