@@ -8,13 +8,9 @@ import torch.nn.functional as F
 from operations import *
 
 class AutoDeeplab (nn.Module) :
-    def __init__(self, num_classes, num_layers, criterion, num_channel = 20, multiplier = 5, step = 5, cell=model_search.Cell, crop_size=320):
+
+    def __init__(self, num_classes, num_layers, criterion, num_channel = 40, multiplier = 5, step = 5, cell=model_search.Cell):
         super(AutoDeeplab, self).__init__()
-        self.level_2 = []
-        self.level_4 = []
-        self.level_8 = []
-        self.level_16 = []
-        self.level_32 = []
         self.cells = nn.ModuleList()
         self._num_layers = num_layers
         self._num_classes = num_classes
@@ -147,17 +143,24 @@ class AutoDeeplab (nn.Module) :
                 self.cells += [cell4_2]
         self.aspp_4 = nn.Sequential (
             ASPP (self._num_channel, 24, 24, self._num_classes)
+        self.aspp_4 = nn.Sequential (    # def __init__(self, in_channels, out_channels, paddings, dilations):
+            ASPP (self._num_channel, 256, 24, 24)
         )
+
         self.aspp_8 = nn.Sequential (
             ASPP (self._num_channel * 2, 12, 12, self._num_classes)
+            ASPP (self._num_channel * 2, 256, 12, 12)
         )
         self.aspp_16 = nn.Sequential (
             ASPP (self._num_channel * 4, 6, 6, self._num_classes)
         )
         self.aspp_32 = nn.Sequential (
             ASPP (self._num_channel * 8, 3, 3, self._num_classes)
+
+            ASPP (self._num_channel * 8, 256, 3, 3)
         )
         
+
 
 
 

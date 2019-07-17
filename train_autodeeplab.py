@@ -29,8 +29,9 @@ class Trainer(object):
 
         # Define Dataloader
         kwargs = {'num_workers': args.workers, 'pin_memory': True}
-        self.train_loader1, self.train_loader2, self.val_loader, self.test_loader, self.nclass = make_data_loader(args, **kwargs)
-
+        #self.train_loader1, self.train_loader2, self.val_loader, self.test_loader, self.nclass = make_data_loader(args, **kwargs)
+        self.train_loader1, self.train_loader2, self.val_loader,  self.nclass = make_data_loader(args, **kwargs)
+        
         # Define Criterion
         # whether to use class balanced weights
         if args.use_balanced_weights:
@@ -109,14 +110,15 @@ class Trainer(object):
                 image, target = image.cuda(), target.cuda()
                 image_search, target_search = image_search.cuda (), target_search.cuda () 
                 # print ('cuda finish')
-            if epoch>19:
-                self.architect.step (image_search, target_search)
             self.scheduler(self.optimizer, i, epoch, self.best_pred)
             self.optimizer.zero_grad()
             output = self.model(image)
+            torch.cuda.empty_cache()
             loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
+            if epoch>19:
+                self.architect.step (image_search, target_search)
             train_loss += loss.item()
             tbar.set_description('Train loss: %.3f' % (train_loss / (i + 1)))
             self.writer.add_scalar('train/total_loss_iter', loss.item(), i + num_img_tr * epoch)
@@ -201,10 +203,12 @@ def main():
                         help='whether to use SBD dataset (default: True)')
     parser.add_argument('--workers', type=int, default=4,
                         metavar='N', help='dataloader threads')
-    parser.add_argument('--base_size', type=int, default=224,
+    parser.add_argument('--base_size', type=int, default=320,
                         help='base image size')
-    parser.add_argument('--crop_size', type=int, default=224,
+    parser.add_argument('--crop_size', type=int, default=320,
                         help='crop image size')
+    parser.add_argument('--resize', type=int, default=512,
+                        help='resize image size')
     parser.add_argument('--sync_bn', type=bool, default=None,
                         help='whether to use sync bn (default: auto)')
     parser.add_argument('--freeze_bn', type=bool, default=False,
@@ -226,19 +230,19 @@ def main():
     parser.add_argument('--use_balanced_weights', action='store_true', default=False,
                         help='whether to use balanced weights (default: False)')
     # optimizer params
-    parser.add_argument('--lr', type=float, default=None, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.025, metavar='LR',
                         help='learning rate (default: auto)')
-    parser.add_argument('--arch_lr', type=float, default=None, metavar='LR',
-                        help='architect learning rate (default: auto)')
+    parser.add_argument('--arch_lr', type=float, default=3e-3, 
+                       help='learning rate for alpha and beta in architect searching process')
 
-    parser.add_argument('--lr_scheduler', type=str, default='poly',
+    parser.add_argument('--lr_scheduler', type=str, default='cos',
                         choices=['poly', 'step', 'cos'],
-                        help='lr scheduler mode: (default: poly)')
+                        help='lr scheduler mode: (default: cos)')
     parser.add_argument('--momentum', type=float, default=0.9,
                         metavar='M', help='momentum (default: 0.9)')
     parser.add_argument('--weight_decay', type=float, default=3e-4,
                         metavar='M', help='w-decay (default: 5e-4)')
-    parser.add_argument('--arch_weight-decay', type=float, default=1e-3,
+    parser.add_argument('--arch_weight_decay', type=float, default=1e-3,
                         metavar='M', help='w-decay (default: 5e-4)')
 
     parser.add_argument('--nesterov', action='store_true', default=False,
@@ -297,10 +301,10 @@ def main():
     if args.lr is None:
         lrs = {
             'coco': 0.1,
-            'cityscapes': 0.01,
+            'cityscapes': 0.025,
             'pascal': 0.007,
         }
-        args.lr = lrs[args.dataset.lower()] / (4 * len(args.gpu_ids)) * args.batch_size
+        #args.lr = lrs[args.dataset.lower()] / (4 * len(args.gpu_ids)) * args.batch_size
 
 
     if args.checkname is None:

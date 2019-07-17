@@ -1,3 +1,6 @@
+# Statement 
+Thanks for your attention to the project.Now,the project can't reproduce the results.It just provides some ideas to reproduce the results.If you have some good ideas, both merging and discussing are welcome.
+
 # AutoDeeplab
 
 This is an implementation of [Auto-DeepLab](https://arxiv.org/abs/1901.02985) using Pytorch.
