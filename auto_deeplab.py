@@ -328,16 +328,14 @@ class AutoDeeplab (nn.Module) :
         sum_feature_map1 = torch.add (aspp_result_4, aspp_result_8)
         sum_feature_map2 = torch.add (aspp_result_16, aspp_result_32)
         sum_feature_map = torch.add (sum_feature_map1, sum_feature_map2)
-
         return sum_feature_map
+
 
     def _initialize_alphas(self):
         k = sum(1 for i in range(self._step) for n in range(2+i))
         num_ops = len(PRIMITIVES)
         self.alphas_cell = torch.tensor (1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
         self.alphas_network = torch.tensor (1e-3*torch.randn(self._num_layers, 4, 3).cuda(), requires_grad=True)
-        # self.alphas_cell = self.alphas_cell.cuda ()
-        # self.alphas_network = self.alphas_network.cuda ()
         self._arch_parameters = [
             self.alphas_cell,
             self.alphas_network

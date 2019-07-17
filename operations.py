@@ -120,9 +120,7 @@ class ASPP(nn.Module):
         self.conv_p = nn.Sequential(nn.Conv2d(in_channels, in_channels, 1, bias=False),
                                     nn.BatchNorm2d(in_channels))
 
-        self.concate_conv = nn.Sequential(nn.Conv2d(in_channels * 3, self._num_classes, 1, bias=False))
-
-        # self.upsample = nn.Upsample(mode='bilinear', align_corners=True)
+        self.concate_conv = nn.Sequential(nn.Conv2d(in_channels * 3, self._num_classes, 1,  stride=1, padding=0))
 
     def forward(self, x):
         conv11 = self.conv11(x)
