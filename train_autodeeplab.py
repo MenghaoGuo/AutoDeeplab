@@ -109,8 +109,6 @@ class Trainer(object):
                 image, target = image.cuda(), target.cuda()
                 image_search, target_search = image_search.cuda (), target_search.cuda () 
                 # print ('cuda finish')
-            if epoch>19:
-                self.architect.step (image_search, target_search)
             self.scheduler(self.optimizer, i, epoch, self.best_pred)
             self.optimizer.zero_grad()
             output = self.model(image)
@@ -118,6 +116,8 @@ class Trainer(object):
             loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
+            if epoch>19:
+                self.architect.step (image_search, target_search)
             train_loss += loss.item()
             tbar.set_description('Train loss: %.3f' % (train_loss / (i + 1)))
             self.writer.add_scalar('train/total_loss_iter', loss.item(), i + num_img_tr * epoch)
@@ -229,17 +229,17 @@ def main():
     # optimizer params
     parser.add_argument('--lr', type=float, default=None, metavar='LR',
                         help='learning rate (default: auto)')
-    parser.add_argument('--arch_lr', type=float, default=None, metavar='LR',
-                        help='architect learning rate (default: auto)')
+    parser.add_argument('--arch_lr', type=float, default=3e-3, 
+                       help='learning rate for alpha and beta in architect searching process')
 
-    parser.add_argument('--lr_scheduler', type=str, default='poly',
+    parser.add_argument('--lr_scheduler', type=str, default='cos',
                         choices=['poly', 'step', 'cos'],
-                        help='lr scheduler mode: (default: poly)')
+                        help='lr scheduler mode: (default: cos)')
     parser.add_argument('--momentum', type=float, default=0.9,
                         metavar='M', help='momentum (default: 0.9)')
     parser.add_argument('--weight_decay', type=float, default=3e-4,
                         metavar='M', help='w-decay (default: 5e-4)')
-    parser.add_argument('--arch_weight-decay', type=float, default=1e-3,
+    parser.add_argument('--arch_weight_decay', type=float, default=1e-3,
                         metavar='M', help='w-decay (default: 5e-4)')
 
     parser.add_argument('--nesterov', action='store_true', default=False,
@@ -298,10 +298,10 @@ def main():
     if args.lr is None:
         lrs = {
             'coco': 0.1,
-            'cityscapes': 0.01,
+            'cityscapes': 0.025,
             'pascal': 0.007,
         }
-        args.lr = lrs[args.dataset.lower()] / (4 * len(args.gpu_ids)) * args.batch_size
+        #args.lr = lrs[args.dataset.lower()] / (4 * len(args.gpu_ids)) * args.batch_size
 
 
     if args.checkname is None:
