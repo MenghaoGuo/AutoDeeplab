@@ -250,9 +250,8 @@ def main():
     # cuda, seed and logging
     parser.add_argument('--no_cuda', action='store_true', default=
                         False, help='disables CUDA training')
-    parser.add_argument('--gpu_ids', type=str, default='0',
-                        help='use which gpu to train, must be a \
-                        comma-separated list of integers only (default=0)')
+    parser.add_argument('--gpu-ids', nargs='*', type=int, default=0,
+                        help='which GPU to train on (default: 0)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
     # checking point
@@ -271,11 +270,6 @@ def main():
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
-    if args.cuda:
-        try:
-            args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
-        except ValueError:
-            raise ValueError('Argument --gpu_ids must be a comma-separated list of integers only')
 
     if args.sync_bn is None:
         if args.cuda and len(args.gpu_ids) > 1:
