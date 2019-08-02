@@ -40,35 +40,28 @@ class Cell(nn.Module):
         self._steps = steps
         self._multiplier = multiplier
         self._ops = nn.ModuleList()
-        if C_prev_prev != -1 :
-            for i in range(self._steps):
-                for j in range(2+i):
-                    stride = 1
+        for i in range(self._steps):
+            for j in range(2+i):
+                if C_prev_prev != -1 and j != 0:
                     op = MixedOp(C, stride)
-                    self._ops.append(op)
-        else :
-            for i in range(self._steps):
-                for j in range(1+i):
+                else:
                     stride = 1
-                    op = MixedOp(C, stride)
-                    self._ops.append(op)
+                    op = None
+                stride = 1
+                self._ops.append(op)
         self.ReLUConvBN = ReLUConvBN (self._multiplier * self.C_out, self.C_out, 1, 1, 0)
-
 
     def forward(self, s0, s1, weights):
         if s0 is not None :
             s0 = self.preprocess0 (s0)
         s1 = self.preprocess1(s1)
-        if s0 is not None :
-            states = [s0, s1]
-        else :
-            states = [s1]
+        states = [s0, s1]
+
         offset = 0
         for i in range(self._steps):
-            s = sum(self._ops[offset+j](h, weights[offset+j]) for j, h in enumerate(states))
+            s = sum(self._ops[offset+j](h, weights[offset+j]) for j, h in enumerate(states) if h is not None)
             offset += len(states)
             states.append(s)
-
 
         concat_feature = torch.cat(states[-self._multiplier:], dim=1)
         return  self.ReLUConvBN (concat_feature)
