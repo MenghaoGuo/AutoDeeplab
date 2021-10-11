@@ -15,6 +15,7 @@ from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
 from auto_deeplab import AutoDeeplab
 from architect import Architect
+print('import complete!!')
 
 class Trainer(object):
     def __init__(self, args):
@@ -48,7 +49,7 @@ class Trainer(object):
         # Define network
         model = AutoDeeplab (self.nclass, 12, self.criterion, crop_size=self.args.crop_size)
         optimizer = torch.optim.SGD(
-                model.weight_parameters(),
+                model.parameters(),
                 args.lr,
                 momentum=args.momentum,
                 weight_decay=args.weight_decay
@@ -250,8 +251,9 @@ def main():
     # cuda, seed and logging
     parser.add_argument('--no_cuda', action='store_true', default=
                         False, help='disables CUDA training')
-    parser.add_argument('--gpu-ids', nargs='*', type=int, default=0,
-                        help='which GPU to train on (default: 0)')
+    parser.add_argument('--gpu_ids', type=str, default='0',
+                        help='use which gpu to train, must be a \
+                        comma-separated list of integers only (default=0)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
     # checking point
@@ -270,6 +272,11 @@ def main():
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
+    if args.cuda:
+        try:
+            args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
+        except ValueError:
+            raise ValueError('Argument --gpu_ids must be a comma-separated list of integers only')
 
     if args.sync_bn is None:
         if args.cuda and len(args.gpu_ids) > 1:

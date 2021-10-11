@@ -1,0 +1,9 @@
+datset:cityscapes
+backbone:resnet
+out_stride:16
+lr:0.007
+lr_scheduler:cos
+loss_type:ce
+epoch:1
+base_size:320
+crop_size:320

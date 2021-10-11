@@ -9,7 +9,7 @@ from operations import *
 
 class AutoDeeplab (nn.Module) :
 
-    def __init__(self, num_classes, num_layers, criterion, num_channel = 40, multiplier = 5, step = 5, crop_size=None, cell=model_search.Cell):
+    def __init__(self, num_classes, num_layers, criterion, num_channel = 40, multiplier = 5, step = 5, crop_size = None, cell=model_search.Cell):
         super(AutoDeeplab, self).__init__()
         self.cells = nn.ModuleList()
         self._num_layers = num_layers
@@ -19,7 +19,6 @@ class AutoDeeplab (nn.Module) :
         self._num_channel = num_channel
         self._criterion = criterion
         self._crop_size = crop_size
-        self._arch_param_names = ["alphas_cell", "alphas_network"]
         self._initialize_alphas ()
         self.stem0 = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=2, padding=1),
@@ -334,14 +333,12 @@ class AutoDeeplab (nn.Module) :
     def _initialize_alphas(self):
         k = sum(1 for i in range(self._step) for n in range(2+i))
         num_ops = len(PRIMITIVES)
-        alphas_cell = torch.tensor (1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
-        self.register_parameter(self._arch_param_names[0], nn.Parameter(alphas_cell))
-
-        # num_layer x num_spatial_levels x num_spatial_connections (down, level, up)
-        alphas_network = torch.tensor (1e-3*torch.randn(self._num_layers, 4, 3).cuda(), requires_grad=True)
-        self.register_parameter(self._arch_param_names[1], nn.Parameter(alphas_network))
-        self.alphas_network_mask = torch.ones(self._num_layers, 4, 3)
-
+        self.alphas_cell = torch.tensor (1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
+        self.alphas_network = torch.tensor (1e-3*torch.randn(self._num_layers, 4, 3).cuda(), requires_grad=True)
+        self._arch_parameters = [
+            self.alphas_cell,
+            self.alphas_network
+        ]
 
     def decode_network (self) :
         best_result = []
@@ -536,11 +533,11 @@ class AutoDeeplab (nn.Module) :
         print (max_prop)
         return best_result
 
-    def arch_parameters(self):
-        return [param for name, param in self.named_parameters() if name in self._arch_param_names]
 
-    def weight_parameters(self):
-        return [param for name, param in self.named_parameters() if name not in self._arch_param_names]
+
+
+    def arch_parameters (self) :
+        return self._arch_parameters
 
     def genotype(self):
         def _parse(weights):
