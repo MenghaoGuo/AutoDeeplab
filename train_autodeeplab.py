@@ -47,7 +47,8 @@ class Trainer(object):
         self.criterion = SegmentationLosses(weight=weight, cuda=args.cuda).build_loss(mode=args.loss_type)
 
         # Define network
-        model = AutoDeeplab (self.nclass, 12, self.criterion, crop_size=self.args.crop_size)
+        # model = AutoDeeplab (self.nclass, 12, self.criterion, crop_size=self.args.crop_size)
+        model = AutoDeeplab (self.nclass, self.args.num_layers, self.criterion, crop_size=self.args.crop_size)
         optimizer = torch.optim.SGD(
                 model.parameters(),
                 args.lr,
@@ -269,6 +270,7 @@ def main():
                         help='evaluuation interval (default: 1)')
     parser.add_argument('--no_val', action='store_true', default=False,
                         help='skip validation during training')
+    parser.add_argument('--num_layers', type=int, default=12)
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
