@@ -571,7 +571,16 @@ class AutoDeeplab (nn.Module) :
         logits = self (input)
         return self._criterion (logits, target)
 
+# model = AutoDeeplab (19, 4, None)
+# save_dict = torch.load('./run/cityscapes/deeplab-resnet/experiment_10/checkpoint.pth.tar')
+# model.load_state_dict(save_dict['state_dict'])
+# result = model.decode_network ()
+# print (result)
+# print (model.genotype())
 
+
+# save_dict['state_dict'].keys()
+# save_dict.keys()
 
 
 def main () :
